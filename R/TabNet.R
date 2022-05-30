@@ -21,7 +21,7 @@ setTabNetTorch <- function(
   batch_size = 256,
   penalty = 1e-3,
   clip_value = NULL,
-  loss = "auto",
+  loss = torch::nn_bce_with_logits_loss(),
   epochs = 5,
   drop_last = FALSE,
   decision_width = 8,
@@ -42,7 +42,7 @@ setTabNetTorch <- function(
   num_shared = 2,
   momentum = 0.02,
   pretraining_ratio = 0.5,
-  verbose = FALSE,
+  verbose = TRUE,
   device = "auto",
   importance_sample_size = 1e5,
   seed=NULL,
@@ -229,7 +229,7 @@ gridCvTabNetTorch <- function(
 
     # get the params
     config <- do.call(tabnet::tabnet_config, args=c(paramSearch[[gridId]], fitSettings))
-    
+
     # initiate prediction
     prediction <- c()
     
@@ -355,7 +355,7 @@ predictTabNetTorch <- function(
     
   
   pred <- predict(plpModel, data)
-  prediction$value <- as.vector(as.matrix(torch::torch_sigmoid(pred$.pred)))
+  prediction$value <- as.vector(as.matrix(torch::torch_sigmoid(torch::torch_tensor(pred$.pred))))
   
   attr(prediction, "metaData")$modelType <- 'binary'
   
