@@ -21,7 +21,7 @@ setTabNetTorch <- function(
   batch_size = 256,
   penalty = 1e-3,
   clip_value = NULL,
-  loss = torch::nn_bce_with_logits_loss(),
+  loss = 'auto',
   epochs = 5,
   drop_last = FALSE,
   decision_width = 8,
@@ -125,7 +125,7 @@ fitTabNetTorch <- function(
   if(!is.null(trainData$folds)){
     trainData$labels <- merge(trainData$labels, trainData$folds, by = 'rowId')
   }
-  
+
   mappedData <- PatientLevelPrediction::toSparseM(
     plpData = trainData,
     map = NULL
@@ -247,9 +247,15 @@ gridCvTabNetTorch <- function(
       
       ParallelLogger::logInfo(paste0('Fold ',i))
       trainDataset <- as.data.frame(as.matrix(matrixData)[fold != i,])
+      trainDataset <- lapply(trainDataset, function(x) as.factor(x))
+      trainDataset <- as.data.frame(trainDataset)
+      
       trainLabel <- labels[fold != i,]
       
+      
       testDataset <-as.data.frame(as.matrix(matrixData)[fold == i,])
+      testDataset <- lapply(testDataset, function(x) as.factor(x))
+      testDataset <- as.data.frame(testDataset)
 
       model <- tabnet::tabnet_fit(x = trainDataset, y = trainLabel$outcomeCount, config = config)
       
